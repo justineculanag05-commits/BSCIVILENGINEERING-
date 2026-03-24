@@ -1,142 +1,104 @@
 import tkinter as tk
 import math
 
-# Main window
 root = tk.Tk()
-root.title("Enhanced Scientific Calculator")
-root.geometry("350x550")
-root.configure(bg="#1e1e2f")
-root.resizable(False, False)  # Disable resizing
+root.title("Aji's Calculator")
+root.geometry("360x470")  
+root.resizable(False, False)
+root.configure(bg="#1e1e2e")
 
-expression = ""
-
-# Display
-def press(key):
-    global expression
-    expression += str(key)
-    input_text.set(expression)
-
-# Evaluate
-def equalpress():
-    global expression
+# ---------------- Functions ----------------
+def calculate():
     try:
-        expression = str(eval(expression))
-        input_text.set(expression)
+        expression = entry_screen.get()
+        expression = expression.replace("%", "/100")
+        expression = expression.replace("π", str(math.pi))
+        
+        result = eval(expression)
+        entry_screen.delete(0, tk.END)
+        entry_screen.insert(0, str(result))
     except:
-        input_text.set("Error")
-        expression = ""
+        entry_screen.delete(0, tk.END)
+        entry_screen.insert(0, "Error")
 
-# Clear
+def click_button(item):
+    current = entry_screen.get()
+    entry_screen.delete(0, tk.END)
+    entry_screen.insert(0, current + str(item))
+
 def clear():
-    global expression
-    expression = ""
-    input_text.set("")
+    entry_screen.delete(0, tk.END)
 
-# Delete last
-def delete():
-    global expression
-    expression = expression[:-1]
-    input_text.set(expression)
+def backspace():
+    current = entry_screen.get()
+    entry_screen.delete(0, tk.END)
+    entry_screen.insert(0, current[:-1])
 
-# Percent
-def percent():
-    global expression
-    try:
-        expression = str(float(expression) / 100)
-        input_text.set(expression)
-    except:
-        input_text.set("Error")
-        expression = ""
+# ---------------- Hover ----------------
+def on_enter(e):
+    e.widget['bg'] = "#666666"
 
-# Pi
-def insert_pi():
-    press(str(math.pi))
+def on_leave(e):
+    e.widget['bg'] = e.widget.default_bg
 
-# Square root
-def sqrt():
-    global expression
-    try:
-        expression = str(math.sqrt(float(expression)))
-        input_text.set(expression)
-    except:
-        input_text.set("Error")
-        expression = ""
+# ---------------- Entry ----------------
+entry_screen = tk.Entry(
+    root,
+    font=("Segoe UI", 24),
+    justify='right',
+    bd=0,
+    bg="#2a2a3d",
+    fg="white",
+    insertbackground="white"
+)
+entry_screen.grid(row=0, column=0, columnspan=4, padx=10, pady=15, ipady=10)
 
-# Parenthesis
-def press_open():
-    press('(')
+# ---------------- Button -----------------
+def create_button(text, row, col, command=None, bg="#3a3a5a"):
+    btn = tk.Button(
+        root,
+        text=text,
+        width=6,
+        height=2,
+        font=("Segoe UI", 13),
+        bg=bg,
+        fg="white",
+        activebackground="#888888",
+        relief="raised",        # umbok effect po sya sir
+        bd=4,                   # thickness = parang shadow
+        command=command if command else lambda: click_button(text)
+    )
+    
+    btn.grid(row=row, column=col, padx=3, pady=3)  #spacing lang
+    
+    btn.default_bg = bg
+    btn.bind("<Enter>", on_enter)
+    btn.bind("<Leave>", on_leave)
 
-def press_close():
-    press(')')
+# ---------------- Buttons ----------------
+create_button("C", 1, 0, clear, bg="#ff4d4d")
+create_button("π", 1, 1, lambda: click_button("π"))
+create_button("/", 1, 2)
+create_button("←", 1, 3, backspace, bg="#ff4d4d")
 
-# Input field
-input_text = tk.StringVar()
-input_frame = tk.Frame(root, bg="#1e1e2f")
-input_frame.grid(row=0, column=0, columnspan=4, pady=20, padx=5, sticky="nsew")
+create_button("7", 2, 0)
+create_button("8", 2, 1)
+create_button("9", 2, 2)
+create_button("*", 2, 3)
 
-input_field = tk.Entry(input_frame, font=('Arial', 20), textvariable=input_text,
-                       width=18, bd=5, relief=tk.FLAT, justify='right', bg="#2d2d44", fg="white")
-input_field.pack(fill=tk.BOTH, expand=True)
+create_button("4", 3, 0)
+create_button("5", 3, 1)
+create_button("6", 3, 2)
+create_button("-", 3, 3)
 
-# Button styling
-def create_button(text, row, col, command, bg="#3b3b5c"):
-    btn = tk.Button(root, text=text, command=command,
-                    font=("Arial", 14, "bold"),
-                    bg=bg, fg="white", bd=0,
-                    width=5, height=2,
-                    activebackground="#5c5cff")
-    btn.grid(row=row, column=col, padx=5, pady=5)
+create_button("1", 4, 0)
+create_button("2", 4, 1)
+create_button("3", 4, 2)
+create_button("+", 4, 3)
 
-    # Hover effect
-    btn.bind("<Enter>", lambda e: btn.config(bg="#5c5cff"))
-    btn.bind("<Leave>", lambda e: btn.config(bg=bg))
-
-# Buttons
-buttons = [
-    ('AC', 1, 0, clear, "#ff5c5c"),
-    ('DEL', 1, 1, delete, "#ff9f43"),
-    ('%', 1, 2, percent, "#00a8ff"),
-    ('/', 1, 3, lambda: press('/'), "#00a8ff"),
-
-    ('(', 2, 0, press_open),
-    (')', 2, 1, press_close),
-    ('√', 2, 2, sqrt, "#9c88ff"),
-    ('x', 2, 3, lambda: press('*'), "#00a8ff"),
-
-    ('7', 3, 0, lambda: press('7')),
-    ('8', 3, 1, lambda: press('8')),
-    ('9', 3, 2, lambda: press('9')),
-    ('-', 3, 3, lambda: press('-'), "#00a8ff"),
-
-    ('4', 4, 0, lambda: press('4')),
-    ('5', 4, 1, lambda: press('5')),
-    ('6', 4, 2, lambda: press('6')),
-    ('+', 4, 3, lambda: press('+'), "#00a8ff"),
-
-    ('1', 5, 0, lambda: press('1')),
-    ('2', 5, 1, lambda: press('2')),
-    ('3', 5, 2, lambda: press('3')),
-    ('=', 5, 3, equalpress, "#4cd137"),
-
-    ('0', 6, 0, lambda: press('0')),
-    ('.', 6, 1, lambda: press('.')),
-    ('π', 6, 2, insert_pi, "#9c88ff"),
-]
-
-# Layout grid config
-for i in range(7):
-    root.rowconfigure(i, weight=1)
-for i in range(4):
-    root.columnconfigure(i, weight=1)
-
-# Create buttons
-for btn in buttons:
-    if len(btn) == 5:
-        text, row, col, cmd, color = btn
-    else:
-        text, row, col, cmd = btn
-        color = "#3b3b5c"
-
-    create_button(text, row, col, cmd, color)
+create_button("0", 5, 0)
+create_button(".", 5, 1)
+create_button("=", 5, 2, calculate, bg="#4CAF50")
+create_button("%", 5, 3)
 
 root.mainloop()
